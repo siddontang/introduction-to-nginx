@@ -281,9 +281,77 @@ location /test {
 				</section>
 
 				<section>
+					<h2>A very simple nginx module</h2>
+				</section>
+
+				<section>
+					<h2>Openresty</h2>
+					<br><br>
+
+					<p>Use lua for nginx development!</p>
+					<br>
+					<p>
+						<strong>
+							A Ha, Lua!!!!!!
+						</strong>
+					</p>
+
+					<p>Thank you, Agentzh!!!!!!</p>
+					<br>
+					<p class="fragment">Now we use openresty to do many things!</p>
+				</section>
+
+				<section>
+					<h2>Authentication</h2>
+					<br><br>
+
+					<pre>
+						<code>
+location /test {
+	access_by_lua 'auth()';
+	proxy_pass http://backend;
+}
+						</code>
+					</pre>
+
+					<p>Use access_by_lua, we can authenticate whether the request is valid.</p>
+					<p>If auth successed, proxy_pass can execute.</p>
+
+				</section>
+
+				<section>
+					<h2>SubRequest</h2>
+					<br><br>
+					<pre>
+						<code>
+location /test {
+	content_by_lua '
+		local res = ngx.location.capture("/_test1", {args = {a = 1, b = 2}})
+		local body = res.body
+		local res1 = ngx.location.capture("/_test2", {args = {a = body}})
+		ngx.say(res1.body)
+	';
+}
+
+location /_test1 {
+	internal;
+	return 200 "123";
+}
+
+location /_test2 {
+	internal;
+	return 200 "456";
+}
+						</code>
+					</pre>
+				</section>
+
+				<section>
 					<h2>Tips</h2>
 				</section>
 
+				<section>
+				</section>
 
 			</div>
 
