@@ -282,6 +282,9 @@ location /test {
 
 				<section>
 					<h2>A very simple nginx module</h2>
+					<br><br>
+
+					<a href="https://gist.github.com/siddontang/5268021">Hello Nginx!</a>
 				</section>
 
 				<section>
@@ -347,10 +350,98 @@ location /_test2 {
 				</section>
 
 				<section>
-					<h2>Tips</h2>
+					<h1>Tips</h1>
 				</section>
 
 				<section>
+					<h2>more_set_headers</h2>
+					<br>
+					<pre>
+						<code>
+upstream backend {
+	server 10.20.187.118:7015;
+	server 10.20.189.241:7015;
+}
+
+server {
+	location /test {
+		proxy_pass http://backend;
+	}
+}
+						</code>
+					</pre>
+
+					<p class="fragment">Which upstream server handle the request?</p>
+					<pre class="fragment"><code>more_set_headers "Kss-Upstream-Addr: $upstream_addr";</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Content-Disposition</h2>
+					<br><br>
+					<pre>
+						<code>
+local fileName = ngx.decode_base64(ngx.var.arg_fn)
+
+local disposition = ''
+if userAgent == 'msie' then
+    disposition = "attachment;filename=" .. ngx.escape_uri(fileName)
+elseif userAgent == 'safari' then
+    disposition = "attachment;filename=" .. fileName
+else
+    disposition = "attachment;filename*=UTF-8''" .. ngx.escape_uri(fileName)
+end
+						</code>
+					</pre>
+
+					<p class="fragment">We must deal different browsers! A Ha!</p>
+
+				</section>
+
+				<section>
+					<h2>fastcgi_param</h2>
+					<br>
+					<p>Directives set in current level <em>clear</em> any previously defined directives for the current level.</p>
+					<br>
+					<p>Use fastcgi_param carefully!</p>
+				</section>
+
+				<section>
+					<h2>location.capture post</h2>
+					<br><br>
+					<p>Muse set HTTP Method, not same as proxy_pass!!!</p>
+					<pre>
+						<code>
+function getRequestData()
+    ngx.req.read_body()
+    body = ngx.req.get_body_data()
+    args = ngx.req.get_uri_args()
+    method = ngx.req.get_method()
+    m = ngx.HTTP_GET
+    if method == 'POST' then
+        m = ngx.HTTP_POST
+    elseif method == 'PUT' then
+        m = ngx.HTTP_PUT
+    elseif method == 'DELETE' then
+        m = ngx.HTTP_DELETE
+    elseif method == 'HEAD' then
+        m = ngx.HTTP_HEAD
+    elseif method == 'OPTIONS' then
+        m = ngx.HTTP_OPTIONS
+    end
+    return {args = args, body = body, method = m}
+end
+
+ngx.location.capture("/test", getRequestData())
+						</code>
+					</pre>
+
+					<p>Same time, use "lua_need_request_body on;"</p>
+
+				</section>
+
+				<section>
+					<h1>Thank You!</h1>
 				</section>
 
 			</div>
