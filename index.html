@@ -50,9 +50,10 @@
 					<ul>
 						<li class="fragment">Introduction</li>
 						<li class="fragment">Architecture</li>
+						<li class="fragment">Install and Use</li>
 						<li class="fragment">Configuration</li>
 						<li class="fragment">Development</li>
-						<li class="fragment">Tips from Painful Lessons</li>
+						<li class="fragment">Tips</li>
 					</ul>
 				</section>
 
@@ -88,6 +89,20 @@
 					<h2>Architecture</h2>
 					<br><br>
 					<img src="./image/architecture.jpg">
+				</section>
+
+				<section>
+					<h2>Install</h2>
+					<br>
+					<ul>
+						<li>configure with add module</li>
+						<li>make</li>
+						<li>make install</li>
+					</ul>
+
+					<br>
+					<p class="fragment">How to Use?</p>
+
 				</section>
 
 				<section>
@@ -308,12 +323,16 @@ location /test {
 
 					<p>Use lua for nginx development!</p>
 					<br>
-					<p>
-						<strong>
-							A Ha, Lua!!!!!!
-						</strong>
-					</p>
+					
+					<p>Why lua?</p>
+					<ul>
+						<li>simple, easy to learn.</li>
+						<li>tiny and powerful.</li>
+						<li>fast.</li>
+						<li>coroutine and synchronization.</li>
+					</ul>
 
+					<br>
 					<p>Thank you, Agentzh!!!!!!</p>
 					<br>
 					<p class="fragment">Now we use openresty to do many things!</p>
@@ -369,90 +388,133 @@ location /_test2 {
 				</section>
 
 				<section>
-					<h2>more_set_headers</h2>
+					<h2>Reverse Proxy Server</h2>
 					<br>
+
+					<ul>
+						<li>proxy_pass</li>
+						<li>fastcgi_pass</li>
+					</ul>
+
+					<pre>
+						<code>
+location /test {
+	proxy_pass http://127.0.0.1:8889/;
+}
+						</code>
+					</pre>
+
+				</section>
+
+				<section>
+					<h2>Cache</h2>
+					<br>
+
+					<ul>
+						<li>proxy cache</li>
+						<li>fastcgi cache</li>
+					</ul>
+
+				</section>
+
+
+				<section>
+					<h2>Upstream</h2>
+
 					<pre>
 						<code>
 upstream backend {
-	server 10.20.187.118:7015;
-	server 10.20.189.241:7015;
+	server 127.0.0.1:8888;
+	server 127.0.0.1:8889;
 }
 
-server {
-	location /test {
-		proxy_pass http://backend;
-	}
+location /test {
+	proxy_pass http://backend;
 }
 						</code>
 					</pre>
 
-					<p class="fragment">Which upstream server handle the request?</p>
-					<pre class="fragment"><code>more_set_headers "Kss-Upstream-Addr: $upstream_addr";</code></pre>
+				</section>
+
+				<section>
+					<h2>Upstream Load balancer</h2>
+					<br>
+
+					<ul>
+						<li>round-robin</li>
+						<li>ip-hash</li>
+						<li>least-conn</li>
+						<li>consistent-hash</li>
+						<li>simple-hash</li>
+					</ul>
 
 				</section>
 
 				<section>
-					<h2>Content-Disposition</h2>
-					<br><br>
+					<h2>Rewrite</h2>
+					<br>
 					<pre>
 						<code>
-local fileName = ngx.decode_base64(ngx.var.arg_fn)
+location /home {
+	echo "home";
+}
 
-local disposition = ''
-if userAgent == 'msie' then
-    disposition = "attachment;filename=" .. ngx.escape_uri(fileName)
-elseif userAgent == 'safari' then
-    disposition = "attachment;filename=" .. fileName
-else
-    disposition = "attachment;filename*=UTF-8''" .. ngx.escape_uri(fileName)
-end
+location /test {
+	echo "test";
+}
+
+rewrite rewrite ^/home http://$host/test permanent;
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Rewrite</h2>
+					<br>
+
+					<pre>
+						<code>
+location /home {
+	return 301 http://$host/test;
+}
+
+location /test {
+	echo "test";
+}
 						</code>
 					</pre>
 
-					<p class="fragment">We must deal different browsers! A Ha!</p>
-
 				</section>
 
 				<section>
-					<h2>fastcgi_param</h2>
+					<h2>Access Control</h2>
 					<br>
-					<p>Directives set in current level <em>clear</em> any previously defined directives for the current level.</p>
-					<br>
-					<p>Use fastcgi_param carefully!</p>
-				</section>
 
-				<section>
-					<h2>location.capture post</h2>
-					<br><br>
-					<p>Muse set HTTP Method, not same as proxy_pass!!!</p>
 					<pre>
 						<code>
-function getRequestData()
-    ngx.req.read_body()
-    body = ngx.req.get_body_data()
-    args = ngx.req.get_uri_args()
-    method = ngx.req.get_method()
-    m = ngx.HTTP_GET
-    if method == 'POST' then
-        m = ngx.HTTP_POST
-    elseif method == 'PUT' then
-        m = ngx.HTTP_PUT
-    elseif method == 'DELETE' then
-        m = ngx.HTTP_DELETE
-    elseif method == 'HEAD' then
-        m = ngx.HTTP_HEAD
-    elseif method == 'OPTIONS' then
-        m = ngx.HTTP_OPTIONS
-    end
-    return {args = args, body = body, method = m}
-end
+location /test {
+	allow 10.20.187.118;
+	deny all;
+	echo "Hello World";
+}
 
-ngx.location.capture("/test", getRequestData())
+location /test1 {
+	deny all;
+	allow 10.20.187.118;
+	echo "Hello World";
+} 
 						</code>
 					</pre>
 
-					<p>Same time, use "lua_need_request_body on;"</p>
+				</section>
 
+				<section>
+					<h2>Anti-Leech</h2>
+					<br>
+					<ul>
+						<li>valid-referers</li>
+						<li>NginxHttpAccessKeyModule</li>
+					</ul>
 				</section>
 
 				<section>
